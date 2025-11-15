@@ -12,7 +12,7 @@ GO
 
 -- Insertar datos en la tabla de pedidos
 -- Esto funciona porque la tabla 'envio' usa IDENTITY(1,1),
--- por lo que el primer envÌo ('TRK-0001') tendr· id = 1.
+-- por lo que el primer env√≠o ('TRK-0001') tendr√° id = 1.
 INSERT INTO pedido (numero, fecha, clienteNombre, total, estado, id_envio)
 VALUES
   ('PED-1001', '2025-11-10', 'Cliente Uno', 25000.00, 'NUEVO', 1);
