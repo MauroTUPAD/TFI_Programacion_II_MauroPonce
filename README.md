@@ -92,7 +92,7 @@ pedido.id_envio → envio.id (FK UNIQUE)
 | Tecnología | Versión | Propósito |
 |------------|---------|-----------|
 | Java | 21 | Lenguaje principal |
-| MySQL | 8.0 | Base de datos relacional |
+| TSQL | 8.0 | Base de datos relacional |
 | JDBC | 8.3.0 | Conectividad con base de datos |
 
 
