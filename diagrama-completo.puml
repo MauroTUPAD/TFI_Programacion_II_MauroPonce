@@ -1,0 +1,218 @@
+@startuml TPI Pedido-Envio
+
+!define ENTITY_COLOR #E8F5E9
+!define DAO_COLOR #E3F2FD
+!define SERVICE_COLOR #FFF3E0
+!define MAIN_COLOR #FCE4EC
+!define CONFIG_COLOR #F3E5F5
+
+' Estilos
+skinparam packageStyle rectangle
+skinparam backgroundColor #FAFAFA
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+
+' ===== CAPA ENTITIES =====
+package "entities" <<Rectangle>> {
+    class Envio <<Entity>> ENTITY_COLOR {
+        - id: Long
+        - eliminado: boolean
+        - tracking: String
+        - empresa: String
+        - tipo: String
+        - costo: Double
+        - fechaDespacho: LocalDate
+        - fechaEstimada: LocalDate
+        - estado: String
+        --
+        + getId(): Long
+        + setId(Long): void
+        + getTracking(): String
+        + setTracking(String): void
+        + getEmpresa(): String
+        + setEmpresa(String): void
+        + getTipo(): String
+        + setTipo(String): void
+        + getCosto(): Double
+        + setCosto(Double): void
+        + getFechaDespacho(): LocalDate
+        + setFechaDespacho(LocalDate): void
+        + getFechaEstimada(): LocalDate
+        + setFechaEstimada(LocalDate): void
+        + getEstado(): String
+        + setEstado(String): void
+        + isEliminado(): boolean
+        + setEliminado(boolean): void
+        + toString(): String
+    }
+
+    class Pedido <<Entity>> ENTITY_COLOR {
+        - id: Long
+        - eliminado: boolean
+        - numero: String
+        - fecha: LocalDate
+        - clienteNombre: String
+        - total: Double
+        - estado: String
+        - envio: Envio
+        --
+        + getId(): Long
+        + setId(Long): void
+        + getNumero(): String
+        + setNumero(String): void
+        + getFecha(): LocalDate
+        + setFecha(LocalDate): void
+        + getClienteNombre(): String
+        + setClienteNombre(String): void
+        + getTotal(): Double
+        + setTotal(Double): void
+        + getEstado(): String
+        + setEstado(String): void
+        + getEnvio(): Envio
+        + setEnvio(Envio): void
+        + isEliminado(): boolean
+        + setEliminado(boolean): void
+        + toString(): String
+    }
+}
+
+' ===== CAPA DAO =====
+package "dao" <<Rectangle>> {
+    interface EnvioDAO <<Interface>> DAO_COLOR {
+        + crear(Envio, Connection): Integer
+        + buscarPorId(int, Connection): Envio
+        + listarTodos(Connection): List<Envio>
+        + actualizar(Envio, Connection): boolean
+        + eliminarLogico(int, Connection): boolean
+    }
+
+    interface PedidoDAO <<Interface>> DAO_COLOR {
+        + crear(Pedido, Connection): Integer
+        + buscarPorId(int, Connection): Pedido
+        + listarTodos(Connection): List<Pedido>
+        + actualizar(Pedido, Connection): boolean
+        + eliminarLogico(int, Connection): boolean
+    }
+}
+
+package "dao.impl" <<Rectangle>> {
+    class EnvioDAOImpl <<DAO>> DAO_COLOR {
+        + crear(Envio, Connection): Integer
+        + buscarPorId(int, Connection): Envio
+        + listarTodos(Connection): List<Envio>
+        + actualizar(Envio, Connection): boolean
+        + eliminarLogico(int, Connection): boolean
+    }
+
+    class PedidoDAOImpl <<DAO>> DAO_COLOR {
+        + crear(Pedido, Connection): Integer
+        + buscarPorId(int, Connection): Pedido
+        + buscarPorNumero(String, Connection): Pedido
+        + listarTodos(Connection): List<Pedido>
+        + actualizar(Pedido, Connection): boolean
+        + eliminarLogico(int, Connection): boolean
+    }
+}
+
+' ===== CAPA SERVICE =====
+package "service" <<Rectangle>> {
+    interface PedidoService <<Interface>> SERVICE_COLOR {
+        + crearPedidoCompleto(Pedido, Envio): void
+        + actualizarPedido(Pedido): void
+        + eliminarPedido(int): void
+        + obtenerPedidoPorId(int): Pedido
+        + listarPedidos(): List<Pedido>
+    }
+}
+
+package "service.impl" <<Rectangle>> {
+    class PedidoServiceImpl <<Service>> SERVICE_COLOR {
+        - pedidoDAO: PedidoDAO
+        - envioDAO: EnvioDAO
+        --
+        + crearPedidoCompleto(Pedido, Envio): void
+        + actualizarPedido(Pedido): void
+        + eliminarPedido(int): void
+        + obtenerPedidoPorId(int): Pedido
+        + obtenerPedidoPorNumero(String): Pedido
+        + listarPedidos(): List<Pedido>
+    }
+}
+
+' ===== CAPA CONFIG =====
+package "config" <<Rectangle>> {
+    class DatabaseConnection <<Config>> CONFIG_COLOR {
+        - {static} URL: String
+        - {static} USER: String
+        - {static} PASS: String
+        --
+        + {static} getConnection(): Connection
+    }
+}
+
+' ===== CAPA MAIN =====
+package "main" <<Rectangle>> {
+    class AppMenu <<Main>> MAIN_COLOR {
+        - {static} sc: Scanner
+        - {static} service: PedidoService
+        --
+        + {static} main(String[]): void
+        - {static} crearPedidoCompletoUI(): void
+        - {static} listarPedidosUI(): void
+        - {static} buscarPedidoUI(): void
+        - {static} actualizarPedidoUI(): void
+        - {static} eliminarPedidoUI(): void
+        - {static} demoRollbackUI(): void
+    }
+}
+
+' ===== RELACIONES ENTRE ENTITIES =====
+Pedido "1" --> "1" Envio : referencia >
+
+' ===== RELACIONES DAO =====
+EnvioDAOImpl ..|> EnvioDAO : implements
+PedidoDAOImpl ..|> PedidoDAO : implements
+
+EnvioDAOImpl ..> Envio : uses
+PedidoDAOImpl ..> Pedido : uses
+PedidoDAOImpl ..> Envio : uses
+
+' ===== RELACIONES SERVICE =====
+PedidoServiceImpl ..|> PedidoService : implements
+PedidoServiceImpl --> PedidoDAO : uses
+PedidoServiceImpl --> EnvioDAO : uses
+PedidoServiceImpl ..> Pedido : uses
+PedidoServiceImpl ..> Envio : uses
+
+' ===== RELACIONES MAIN =====
+AppMenu --> PedidoService : uses
+AppMenu ..> Pedido : uses
+AppMenu ..> Envio : uses
+
+' ===== RELACIONES CONFIG =====
+PedidoServiceImpl ..> DatabaseConnection : uses
+EnvioDAOImpl ..> DatabaseConnection : uses (implicit)
+PedidoDAOImpl ..> DatabaseConnection : uses (implicit)
+
+' ===== NOTAS =====
+note right of Pedido
+  **Relación 1→1 Unidireccional**
+  - Pedido tiene referencia a Envio
+  - Envio NO conoce a Pedido
+  - FK: pedido.id_envio → envio.id (UNIQUE)
+end note
+
+note right of PedidoServiceImpl
+  **Transacciones**
+  - setAutoCommit(false)
+  - commit() en éxito
+  - rollback() en fallo
+end note
+
+note bottom of DatabaseConnection
+  **Configuración MySQL**
+  jdbc:mysql://localhost:3306/
+  tpi_prog2_pedido_envio
+end note
+
+@enduml
